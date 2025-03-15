@@ -1,0 +1,99 @@
+---
+title: "Treating the data"
+format: html
+editor: visual
+---
+
+After better understanding our dataset, we are now ready to prepare the data for our forecasting exercise. We have already treated part of the data in the previous script: the sales information was aggregated to category/week, our hierarchical level of interest. This script will then focus on treating `calendar` and `prices` and joining all variables in a single file that will be used in our forecasting comparison.
+
+## Packages
+
+The packages used in this document are:
+
+```{r}
+#| warning: false
+#| message: false
+options(repos = c(CRAN = "https://cran.r-project.org"))
+
+install.packages("tidyverse")
+install.packages("magrittr")
+
+library(tidyverse)
+library(magrittr)
+
+```
+
+## Loading the data
+
+```{r}
+#| warning: false
+#| message: false
+
+# Loading prices
+prices<-read_csv("../data/sell_prices.csv")
+
+# Weights - will be used with prices
+w<-read_csv("../data/weights_validation.csv")
+
+```
+
+## Prices
+
+```{r}
+#| warning: false
+#| message: false
+
+head(prices)
+
+```
+
+We begin by aggregating the product/week prices across all stores as in the last script:
+
+Note: we are considering "category level (cat_id)". The code needs to be adapted for other levels.
+
+```{r}
+#| warning: false
+#| message: false
+
+prices$cat_id<-unlist(str_split(prices$item_id, "_", 2, simplify = T), recursive = F)[,1]
+w %<>% filter(Level_id == "Level12") %>%
+  select(item_id = Agg_Level_1, store_id = Agg_Level_2, dollar_sales = Dollar_Sales)
+prices %<>% left_join(w, by = c("item_id", "store_id"))
+prices %<>% group_by(cat_id, item_id, wm_yr_wk) %>%
+  summarise(sell_price = weighted.mean(sell_price, dollar_sales),
+            dollar_sales = sum(dollar_sales)) %>%
+  ungroup()
+prices$sell_price[prices$dollar_sales == 0]<-0
+
+head(prices)
+
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+
+rm(w)
+
+```
+
+Below we create the weighted mean, median and the 25%, 75% and 90% quantiles of weekly prices for each `cat_id`. The usage of more upper quantiles than lower ones is due to the observed right-skewed distributions in two out of three categories.
+
+```{r}
+#| warning: false
+#| message: false
+
+# Summarizing
+prices %<>% group_by(cat_id, wm_yr_wk) %>%
+  summarise(price_wmean = weighted.mean(sell_price, dollar_sales),
+            price_median = median(sell_price),
+            price_q25 = quantile(sell_price, 0.25),
+            price_q75 = quantile(sell_price, 0.75),
+            price_q90 = quantile(sell_price, 0.9)) %>%
+  ungroup()
+
+head(prices)
+
+write_csv(prices, "../data/prices.csv")
+```

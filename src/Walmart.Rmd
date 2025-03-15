@@ -87,7 +87,71 @@ grouped_data <- left_join(grouped_data, calendar, by = "day")
 ```
 
 ```{r}
-
+# Holiday list variables
+influential_holidays = list(
+      #Thanksgiving 2011-2015
+      list(
+        type = "line",
+        x0 = as.Date("2011-11-24"), x1 = as.Date("2011-11-24"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "brown", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2012-11-22"), x1 = as.Date("2012-11-22"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "brown", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2013-11-28"), x1 = as.Date("2013-11-28"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "brown", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2014-11-27"), x1 = as.Date("2014-11-27"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "brown", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2015-11-26"), x1 = as.Date("2015-11-26"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "brown", dash = "dash")               # Set line color and style
+      ),
+      #Christmas 2011-2015
+      list(
+        type = "line",
+        x0 = as.Date("2011-12-25"), x1 = as.Date("2011-12-25"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "red", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2012-12-25"), x1 = as.Date("2012-12-25"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "red", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2013-12-25"), x1 = as.Date("2013-12-25"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "red", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2014-12-25"), x1 = as.Date("2014-12-25"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "red", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2015-12-25"), x1 = as.Date("2015-12-25"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "red", dash = "dash")               # Set line color and style
+      )
+    )
 ```
 
 
@@ -96,36 +160,22 @@ grouped_data <- left_join(grouped_data, calendar, by = "day")
 quantity_plot <- plot_ly(grouped_data, x = ~as.Date(date), y = ~total, color = ~cat_id, type='scatter', mode = 'lines') %>%
   layout(title = "Walmart Product Data",
          xaxis = list(title = "Date"),
-         yaxis = list(title = "Quantity"))
+         yaxis = list(title = "Quantity"),
+         shapes = influential_holidays)
 quantity_plot
 ```
 
 
-```{r}
-# Filter the calendar data frame for unique events
-holidays_df <- calendar[!is.na(calendar$event_name_1), ]
-unique_holidays <- unique(holidays_df$event_name_1)
+# ```{r}
+# overlayed_plot <- quantity_plot %>%
+#   add_lines(x = rep(as.Date("2015-03-01"), 2),          # Repeated x value for vertical line
+#             y = c(0, 40000 * 1.1),                      # From 0 to y above max value
+#             line = list(color = 'red', dash = 'dash'),  # Set color and dash style
+#             name = "Event")                             # Add name to the legend
 
-# Add a trace for each unique holiday in the legend
-for (holiday in unique_holidays) {
-  quantity_plot <- quantity_plot %>%
-    add_trace(x = NULL, y = NULL, mode = 'lines', type = 'scatter',
-              line = list(color = 'red', dash = 'dash'),
-              name = holiday)
-}
-
-# Add vertical lines for each holiday
-for (i in 1:nrow(unique_holidays)) {
-  quantity_plot <- quantity_plot %>%
-    add_segments(x = unique_holidays$date[i], xend = unique_holidays$date[i],
-                 y = 0, yend = max(grouped_data$value) * 1.1,  # Adjust y-end for visibility
-                 line = list(color = 'red', dash = 'dash'),
-                 showlegend = FALSE)  # Hide individual lines in the legend
-}
-
-# Display the plot
-quantity_plot
-```
+# # Display the plot
+# overlayed_plot
+# ```
 
 
 

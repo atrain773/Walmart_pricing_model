@@ -1,0 +1,182 @@
+---
+title: "ECON 491 Times Series Data (Walmart)"
+author: "Anton Sebastian & Greg Harmon"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Clearing Global Environment
+```{r}
+rm(list = ls())
+```
+
+Installing Packages
+```{r}
+options(repos = c(CRAN = "https://cran.r-project.org"))
+install.packages("tidyr")
+install.packages("plotly")
+```
+
+Libraries
+```{r}
+library("readr")
+library(dplyr)
+library(tidyr)
+library(plotly)
+```
+
+Importing Data
+```{r}
+calendar = read_csv('../data/calendar.csv')
+head(calendar)
+```
+```{r}
+sales_train_validation = read_csv('../data/sales_train_validation.csv')
+head(sales_train_validation)
+```
+
+
+```{r}
+sales_test_validation = read_csv('../data/sales_test_validation.csv')
+head(sales_test_validation)
+```
+```{r}
+sell_prices = read_csv('../data/sell_prices.csv')
+head(sell_prices)
+```
+```{r}
+weights_validation = read_csv('../data/weights_validation.csv')
+head(weights_validation)
+```
+
+Data Aggregation
+```{r}
+
+# Joined data into a single data frame
+# Pivot single data frame so dates become rows
+# Aggregate to category/day
+# Make date format the same as calendar
+
+pivoted_sales_test_validation <- sales_test_validation %>%
+  pivot_longer(
+    cols = starts_with("d_"),  # Select columns starting with 'd_'
+    names_to = "day",          # New column name for the pivoted columns
+    values_to = "value"        # New column name for the values in the selected columns
+  ) %>%
+mutate(day = as.numeric(gsub("d_", "", day)))
+```
+
+```{r}
+grouped_data_test <- pivoted_sales_test_validation %>%
+  group_by(cat_id, day) %>%
+  summarize(total = sum(value))
+```
+
+```{r}
+# Add day column to calendar data frame
+calendar$day <- 1:nrow(calendar)
+```
+
+```{r}
+# left join data 
+grouped_data_test <- left_join(grouped_data_test, calendar, by = "day")
+write.csv(grouped_data_test, file = "../data/grouped_data_test.csv", row.names = FALSE)
+```
+
+```{r}
+# Holiday list variables
+influential_holidays = list(
+      #Thanksgiving 2011-2015
+      list(
+        type = "line",
+        x0 = as.Date("2011-11-24"), x1 = as.Date("2011-11-24"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "brown", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2012-11-22"), x1 = as.Date("2012-11-22"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "brown", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2013-11-28"), x1 = as.Date("2013-11-28"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "brown", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2014-11-27"), x1 = as.Date("2014-11-27"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "brown", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2015-11-26"), x1 = as.Date("2015-11-26"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "brown", dash = "dash")               # Set line color and style
+      ),
+      #Christmas 2011-2015
+      list(
+        type = "line",
+        x0 = as.Date("2011-12-25"), x1 = as.Date("2011-12-25"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "red", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2012-12-25"), x1 = as.Date("2012-12-25"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "red", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2013-12-25"), x1 = as.Date("2013-12-25"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "red", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2014-12-25"), x1 = as.Date("2014-12-25"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "red", dash = "dash")               # Set line color and style
+      ),
+      list(
+        type = "line",
+        x0 = as.Date("2015-12-25"), x1 = as.Date("2015-12-25"),  # x-coordinate for the vertical line
+        y0 = 0, y1 = 40000 * 1.1,                               # Extend from y = 0 to y above the max value
+        line = list(color = "red", dash = "dash")               # Set line color and style
+      )
+    )
+```
+
+
+```{r}
+# plot data
+quantity_test_plot <- plot_ly(grouped_data_test, x = ~as.Date(date), y = ~total, color = ~cat_id, type='scatter', mode = 'lines') %>%
+  layout(title = "Walmart Product Data",
+         xaxis = list(title = "Date"),
+         yaxis = list(title = "Quantity"),
+         shapes = influential_holidays)
+quantity_plot
+```
+
+
+# ```{r}
+# overlayed_plot <- quantity_plot %>%
+#   add_lines(x = rep(as.Date("2015-03-01"), 2),          # Repeated x value for vertical line
+#             y = c(0, 40000 * 1.1),                      # From 0 to y above max value
+#             line = list(color = 'red', dash = 'dash'),  # Set color and dash style
+#             name = "Event")                             # Add name to the legend
+
+# # Display the plot
+# overlayed_plot
+# ```
+
+
+
